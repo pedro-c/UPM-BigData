@@ -33,6 +33,6 @@ for i, game in enumerate(data):
 with open('./project/dataset/pre-processed/parsed.csv', 'w') as csvfile:
   parsedCSV = csv.writer(csvfile, delimiter=';')
   for key, value in averages.items():
-    if(value[0] > 50):
-      parsedCSV.writerow([key, int(round(Decimal(value[1]) * Decimal(1000)))])
+    if(value[0] > 150):
+      parsedCSV.writerow([key, value[1]])
 

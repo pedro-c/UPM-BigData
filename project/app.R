@@ -5,6 +5,7 @@ library(wordcloud)
 library(memoise)
 
 datasets<<- list("googleplaystore")
+ratings <- read.csv("./dataset/pre-processed/ratings150.csv", header=TRUE, sep=";")
 
 # Using "memoise" to automatically cache the results
 getTermMatrix <- memoise(function(data) {
@@ -34,12 +35,11 @@ getTermMatrix <- memoise(function(data) {
   sort(rowSums(m), decreasing = TRUE)
 })
 
-
 # Define UI for application that draws a histogram
 ui <- fluidPage(
    
   # Application title
-  titlePanel("Word Cloud"),
+  titlePanel("Big Data - Visualization Project"),
   
   sidebarLayout(
     # Sidebar with a slider and selection inputs
@@ -53,12 +53,18 @@ ui <- fluidPage(
                   min = 1,  max = 50, value = 20),
       sliderInput("max",
                   "Maximum Number of Words:",
-                  min = 1,  max = 300,  value = 100)
+                  min = 1,  max = 300,  value = 100),
+      sliderInput("bins",
+                  "Number of bins:",
+                  min = 1,
+                  max = 50,
+                  value = 30)
     ),
     
     # Show Word Cloud
     mainPanel(
-      plotOutput("plot")
+      plotOutput("plot"),
+      plotOutput("distPlot")
     )
   )
 )
@@ -82,11 +88,20 @@ server <- function(input, output) {
   # Make the wordcloud drawing predictable during a session
   wordcloud_rep <- repeatable(wordcloud)
   
+  # wordcloud
   output$plot <- renderPlot({
     v <- terms()
     wordcloud_rep(names(v), v, scale=c(4,0.5),
                   min.freq = input$freq, max.words=input$max,
                   colors=brewer.pal(8, "Dark2"))
+  })
+  
+  # ratings bar plot
+  output$distPlot <- renderPlot({
+    # draw the histogram with the specified number of bins
+    df <- ratings[order(ratings$Rating,decreasing = TRUE),]
+    
+    barplot(df$Rating, names.arg = ratings$App, las=2, col = 'darkgray', border = 'white')
   })
 }
 
