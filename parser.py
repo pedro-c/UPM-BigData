@@ -1,17 +1,19 @@
 import csv
+from decimal import *
 
 # ex: averages = {'game_name': [count, rating_average]}
 averages = {}
 
-fh = open("worddata.csv", 'rt') 
-reader = csv.reader(fh, delimiter=';') 
+fh = open("./project/dataset/googleplaystore.csv", 'rt') 
+reader = csv.reader(fh, delimiter=',')
+next(reader, None)  # skip the headers
 data = list(reader) 
 
 # game = ['game_name', rating]
 for i, game in enumerate(data):
   # games without numeric rating are not considered
   gameTitle = game[0]
-  gameRating = game[1]
+  gameRating = game[2]
   if gameRating != 'NaN':
     rating = float(gameRating)
     # go through each word on the game title
@@ -28,9 +30,9 @@ for i, game in enumerate(data):
         averages[lowerCaseWord] = [1,rating]
 
 # Save data to new file
-with open('parsed.csv', 'w') as csvfile:
+with open('./project/dataset/pre-processed/parsed.csv', 'w') as csvfile:
   parsedCSV = csv.writer(csvfile, delimiter=';')
   for key, value in averages.items():
-    if value[0] > 20:
-      parsedCSV.writerow([key, value[0], value[1]])
+    if(value[0] > 50):
+      parsedCSV.writerow([key, int(round(Decimal(value[1]) * Decimal(1000)))])
 
