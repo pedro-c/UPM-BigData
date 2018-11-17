@@ -33,6 +33,6 @@ for i, game in enumerate(data):
 with open('../dataset/pre-processed/wordRatings.csv', 'w') as csvfile:
   parsedCSV = csv.writer(csvfile, delimiter=';')
   for key, value in averages.items():
-    if (value[0] > 5): 
+    if (value[0] > 15): 
       parsedCSV.writerow([key, value[1], value[0]])
 

@@ -4,8 +4,9 @@ library(tm)
 library(wordcloud)
 library(memoise)
 
-datasets<<- list("googleplaystore")
-ratings <- read.csv("./dataset/pre-processed/ratings.csv", header=TRUE, sep=";")
+datasets<<- list("wordRatings", "wordInstalls")
+ratings <- read.csv("./dataset/pre-processed/wordRatings.csv", header=TRUE, sep=";")
+installs <- read.csv("./dataset/pre-processed/wordInstalls.csv", header=TRUE, sep=";")
 
 # Using "memoise" to automatically cache the results
 getTermMatrix <- memoise(function(data) {
@@ -15,24 +16,8 @@ getTermMatrix <- memoise(function(data) {
   if (!(data %in% datasets))
     stop("Unknown book")
   
-  text<-read.csv(sprintf("./dataset/%s.csv", data))
+  text<-read.csv(sprintf("./dataset/pre-processed/%s.csv", data), header=TRUE, sep=";")
   text<-data.frame(text)
-  
-  myCorpus = Corpus(VectorSource(text$App))
-  myCorpus = tm_map(myCorpus, PlainTextDocument)
-  myCorpus = tm_map(myCorpus,tolower)
-  myCorpus = tm_map(myCorpus,removeNumbers)
-  myCorpus = tm_map(myCorpus,removeWords,stopwords("english"))
-  myCorpus = tm_map(myCorpus,removePunctuation)
-  myCorpus = tm_map(myCorpus,stripWhitespace)
-  myCorpus = tm_map(myCorpus,stemDocument)
-  
-  myDTM = TermDocumentMatrix(myCorpus,
-                             control = list(minWordLength = 1))
-  
-  m = as.matrix(myDTM)
-  
-  sort(rowSums(m), decreasing = TRUE)
 })
 
 # Define UI for application that draws a histogram
@@ -50,7 +35,7 @@ ui <- fluidPage(
       hr(),
       sliderInput("freq",
                   "Minimum Frequency:",
-                  min = 1,  max = 50, value = 20),
+                  min = 1,  max = 200, value = 50),
       sliderInput("max",
                   "Maximum Number of Words:",
                   min = 1,  max = 300,  value = 100),
@@ -90,18 +75,16 @@ server <- function(input, output) {
   
   # wordcloud
   output$plot <- renderPlot({
-    v <- terms()
-    wordcloud_rep(names(v), v, scale=c(4,0.5),
-                  min.freq = input$freq, max.words=input$max,
-                  colors=brewer.pal(8, "Dark2"))
+    v <- subset(terms(), Count > input$freq)
+    wordcloud_rep(words = v$Word, freq = v$Value, min.freq = input$freq, max.words=input$max, colors=brewer.pal(8, "Dark2"))
   })
   
   # ratings bar plot
   output$distPlot <- renderPlot({
     # draw the histogram with the specified number of bins
-    df <- ratings[order(ratings$Rating,decreasing = TRUE),]
+    df <- ratings[order(ratings$Value,decreasing = TRUE),]
     
-    barplot(df$Rating, names.arg = ratings$App, las=2, col = 'darkgray', border = 'white')
+    barplot(df$Value, names.arg = ratings$Word, las=2, col = 'darkgray', border = 'white')
   })
 }
 
