@@ -4,7 +4,7 @@ from decimal import *
 # ex: averages = {'game_name': [count, rating_average]}
 averages = {}
 
-fh = open("./project/dataset/googleplaystore.csv", 'rt') 
+fh = open("../dataset/googleplaystore.csv", 'rt') 
 reader = csv.reader(fh, delimiter=',')
 next(reader, None)  # skip the headers
 data = list(reader) 
@@ -30,9 +30,9 @@ for i, game in enumerate(data):
         averages[lowerCaseWord] = [1,rating]
 
 # Save data to new file
-with open('./project/dataset/pre-processed/parsed.csv', 'w') as csvfile:
+with open('../dataset/pre-processed/wordRatings.csv', 'w') as csvfile:
   parsedCSV = csv.writer(csvfile, delimiter=';')
   for key, value in averages.items():
-    if(value[0] > 150):
-      parsedCSV.writerow([key, value[1]])
+    if (value[0] > 5): 
+      parsedCSV.writerow([key, value[1], value[0]])
 

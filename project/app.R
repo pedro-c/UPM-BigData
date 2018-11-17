@@ -5,7 +5,7 @@ library(wordcloud)
 library(memoise)
 
 datasets<<- list("googleplaystore")
-ratings <- read.csv("./dataset/pre-processed/ratings150.csv", header=TRUE, sep=";")
+ratings <- read.csv("./dataset/pre-processed/ratings.csv", header=TRUE, sep=";")
 
 # Using "memoise" to automatically cache the results
 getTermMatrix <- memoise(function(data) {
