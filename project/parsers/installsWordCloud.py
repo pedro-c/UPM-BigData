@@ -1,4 +1,5 @@
 import csv
+import math
 from decimal import *
 
 # ex: averages = {'game_name': [count, installs_average]}
@@ -31,7 +32,8 @@ for i, game in enumerate(data):
 # Save data to new file
 with open('../dataset/pre-processed/wordInstalls.csv', 'w') as csvfile:
   parsedCSV = csv.writer(csvfile, delimiter=';')
+  parsedCSV.writerow(["Word","Value","Count"])
   for key, value in averages.items():
     if (value[0] > 15): 
-      parsedCSV.writerow([key, value[1], value[0]])
+      parsedCSV.writerow([key, math.floor(value[1]), value[0]])
 
