@@ -25,6 +25,12 @@ getHistogramData <-memoise(function(data) {
   data<-read.csv(sprintf("./dataset/pre-processed/%s.csv", data), header=TRUE, sep=";")
 })
 
+getLastUpdateData <-memoise(function() {
+  data<-read.csv("./dataset/pre-processed/lastUpdated.csv", header=TRUE, sep=",")
+  data<-data.frame(data)
+})
+
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(
    
@@ -49,7 +55,8 @@ ui <- fluidPage(
     # Show Word Cloud
     mainPanel(
       plotOutput("plot"),
-      plotOutput("distPlot")
+      plotOutput("distPlot"),
+      plotOutput("scatterplot")
     )
   )
 )
@@ -92,7 +99,7 @@ server <- function(input, output) {
   })
   
  
-  
+  # Histogram
   output$distPlot <- renderPlot({
     x <- subset(df(), Count > input$freq)
     values<-x[order(x$Value,decreasing = TRUE),]
@@ -101,6 +108,16 @@ server <- function(input, output) {
     words <-head(words,n=input$max)
     
     barplot(values$Value, names.arg = words, las=2, col = 'darkgray', border = 'white')
+    
+  })
+  
+  # scatterplot
+  output$scatterplot <- renderPlot({
+    data <- getLastUpdateData()
+    
+    plot(data$lastupdate, data$Rating, main="Rating  VS Last Update( days ago )", xlab="Last Update (days) ", ylab="Rating", pch=19,  col  = "aquamarine")
+    
+    abline(lm(data$Rating~data$lastupdate), col="red") # regression line (y~x) 
     
   })
 }
