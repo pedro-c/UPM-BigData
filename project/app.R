@@ -49,7 +49,10 @@ ui <- fluidPage(
                   min = 1,  max = 200, value = 50),
       sliderInput("max",
                   "Maximum Number of Words:",
-                  min = 1,  max = 300,  value = 100)
+                  min = 1,  max = 300,  value = 100),
+      sliderInput("days",
+                  "Number of days:",
+                  min = 1,  max = 3000,  value = 3000)
     ),
     
     # Show Word Cloud
@@ -113,11 +116,11 @@ server <- function(input, output) {
   
   # scatterplot
   output$scatterplot <- renderPlot({
-    data <- getLastUpdateData()
+    data <- subset(getLastUpdateData(), lastupdate > -(input$days))
     
     plot(data$lastupdate, data$Rating, main="Rating  VS Last Update( days ago )", xlab="Last Update (days) ", ylab="Rating", pch=19,  col  = "aquamarine")
     
-    abline(lm(data$Rating~data$lastupdate), col="red") # regression line (y~x) 
+    abline(lm(data$Rating~data$lastupdate), col="red") # regression line (ypl~x) 
     
   })
 }
