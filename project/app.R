@@ -46,7 +46,7 @@ ui <- fluidPage(
       hr(),
       sliderInput("freq",
                   "Minimum Frequency:",
-                  min = 1,  max = 200, value = 50),
+                  min = 15,  max = 200, value = 50),
       sliderInput("max",
                   "Maximum Number of Words:",
                   min = 1,  max = 300,  value = 100),
