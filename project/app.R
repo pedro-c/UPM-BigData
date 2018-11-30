@@ -3,8 +3,14 @@ library(shiny)
 library(tm)
 library(wordcloud)
 library(memoise)
+library(ggplot2)
 
-datasets<<- list("wordInstalls", "wordRatings")
+datasets <- list("wordInstalls", "wordRatings")
+records <- read.csv(file="./dataset/pre-processed/dataBubbleChart.csv", header=TRUE, sep=",")
+category = records[,2]
+installs = records[,3]
+ratings = records[,4]
+sizeApp = records[,5]
 
 # Using "memoise" to automatically cache the results
 getTermMatrix <- memoise(function(data) {
@@ -30,7 +36,6 @@ getLastUpdateData <-memoise(function() {
   data<-data.frame(data)
 })
 
-
 # Define UI for application that draws a histogram
 ui <- fluidPage(
    
@@ -52,20 +57,29 @@ ui <- fluidPage(
                   min = 1,  max = 300,  value = 100),
       sliderInput("days",
                   "Number of days:",
-                  min = 1,  max = 3000,  value = 3000)
+                  min = 1,  max = 3000,  value = 3000),
+      list(h3("Multicolumn checkboxGroupInput"), 
+           tags$div(align = 'left', 
+                    class = 'multicol', 
+                    checkboxGroupInput(inputId  = 'checkBoxCat', 
+                                       label    = NULL, 
+                                       choices  = category,
+                                       selected = category,
+                                       inline   = FALSE))) 
     ),
     
     # Show Word Cloud
     mainPanel(
-      plotOutput("plot"),
+      plotOutput("wordcloud"),
       plotOutput("distPlot"),
-      plotOutput("scatterplot")
-    )
+      plotOutput("scatterplot"),
+      plotOutput("plot")
+    ),
   )
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
    
   # Define a reactive expression for the document term matrix
   terms <- reactive({
@@ -96,7 +110,7 @@ server <- function(input, output) {
   wordcloud_rep <- repeatable(wordcloud)
   
   # wordcloud
-  output$plot <- renderPlot({
+  output$wordcloud <- renderPlot({
     v <- subset(terms(), Count > input$freq)
     wordcloud_rep(words = v$Word, freq = v$Value, min.freq = input$freq, max.words=input$max, colors=brewer.pal(8, "Dark2"))
   })
@@ -122,6 +136,33 @@ server <- function(input, output) {
     
     abline(lm(data$Rating~data$lastupdate), col="red") # regression line (ypl~x) 
     
+  })
+
+  # bubblechart
+  output$plot <- renderPlot({
+    df2<-records
+    
+    y <- input$checkBoxCat
+    
+    updateCheckboxGroupInput(session, "checkBoxCat",
+                             label = paste("Checkboxgroup label", length(y)),
+                             choices = category,
+                             selected = y
+    )
+    
+    dih_col <- which(df2$Category %in% y)
+    if (y  == category){
+      ggplot(data=df2, aes(ratings, installs, color=category, size=sizeApp)) + geom_point() + scale_size_continuous(range = c(3, 20)) +
+        labs(x = ~Rating, y = ~Installations)
+    }else {
+      print(y)
+      rowNum <- which(df2$Category==y)
+      
+      print(rowNum)
+      print(df2[rowNum,2])
+      ggplot(data=df2, aes(ratings, installs, color=records[rowNum, 2], size=df2[rowNum, 5])) + geom_point() + scale_size_continuous(range = c(3, 20)) +
+        labs(x = ~Rating, y = ~Installations)
+    }
   })
 }
 
