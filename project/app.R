@@ -8,9 +8,6 @@ library(ggplot2)
 datasets <- list("wordInstalls", "wordRatings")
 records <- read.csv(file="./dataset/pre-processed/dataBubbleChart.csv", header=TRUE, sep=",")
 category = records[,2]
-installs = records[,3]
-ratings = records[,4]
-sizeApp = records[,5]
 
 # Using "memoise" to automatically cache the results
 getTermMatrix <- memoise(function(data) {
@@ -73,7 +70,7 @@ ui <- fluidPage(
       plotOutput("wordcloud"),
       plotOutput("distPlot"),
       plotOutput("scatterplot"),
-      plotOutput("plot")
+      plotOutput("bubbleChartPlot")
     ),
   )
 )
@@ -138,31 +135,41 @@ server <- function(input, output, session) {
     
   })
 
-  # bubblechart
-  output$plot <- renderPlot({
-    df2<-records
+  # Bubblechart
+  output$bubbleChartPlot <- renderPlot({
+    df<-records
     
-    y <- input$checkBoxCat
+    x <- input$checkBoxCat
+    
+    #new df with values for chosen categories
+    count = 0
+    for (row in 1:nrow(df)) {
+      for (i in 1:length(x)){
+        value <- df[row, "Category"]
+        
+        if(count==0){
+          aux <- data.frame(matrix(ncol = 4, nrow = 0))
+          c <- c("Category", "Installs", "Rating", "Size")
+          colnames(aux) <- c
+          count = count + 1
+        }
+        else if(value==x[i]){
+          newRow <- data.frame(Category=value, Installs=df[row,"Installs"], Rating=df[row,"Rating"], Size=df[row, "Size"])
+          aux <- rbind(aux, newRow)
+        }
+      }
+    }
     
     updateCheckboxGroupInput(session, "checkBoxCat",
-                             label = paste("Checkboxgroup label", length(y)),
+                             label = paste("Checkboxgroup label", length(x)),
                              choices = category,
-                             selected = y
+                             selected = x
     )
     
-    dih_col <- which(df2$Category %in% y)
-    if (y  == category){
-      ggplot(data=df2, aes(ratings, installs, color=category, size=sizeApp)) + geom_point() + scale_size_continuous(range = c(3, 20)) +
-        labs(x = ~Rating, y = ~Installations)
-    }else {
-      print(y)
-      rowNum <- which(df2$Category==y)
-      
-      print(rowNum)
-      print(df2[rowNum,2])
-      ggplot(data=df2, aes(ratings, installs, color=records[rowNum, 2], size=df2[rowNum, 5])) + geom_point() + scale_size_continuous(range = c(3, 20)) +
-        labs(x = ~Rating, y = ~Installations)
-    }
+    Categories <- aux[,1]
+    Size <- aux[,4]
+    ggplot(data=aux, aes(aux[, 3], aux[, 2], color=Categories, size=Size)) + geom_point() + scale_size_continuous(range = c(3, 20)) +
+      labs(x = ~Rating, y = ~Installations) + theme(legend.position="bottom")
   })
 }
 
