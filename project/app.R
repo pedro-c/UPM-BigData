@@ -61,7 +61,7 @@ ui <- fluidPage(
                     checkboxGroupInput(inputId  = 'checkBoxCat', 
                                        label    = NULL, 
                                        choices  = category,
-                                       selected = category,
+                                       selected = head(category,n=12),
                                        inline   = FALSE))) 
     ),
     
@@ -118,8 +118,7 @@ server <- function(input, output, session) {
     x <- subset(df(), Count > input$freq)
     values<-x[order(x$Value,decreasing = TRUE),]
     values<-head(values,n=input$max)
-    words <-x$Word
-    words <-head(words,n=input$max)
+    words <-values$Word
     
     barplot(values$Value, names.arg = words, las=2, col = 'darkgray', border = 'white')
     
@@ -170,6 +169,13 @@ server <- function(input, output, session) {
     Size <- aux[,4]
     ggplot(data=aux, aes(aux[, 3], aux[, 2], color=Categories, size=Size)) + geom_point() + scale_size_continuous(range = c(3, 20)) +
       labs(x = ~Rating, y = ~Installations) + theme(legend.position="bottom")
+  })
+  
+  observe({
+    if(length(input$checkBoxCat) > 12)
+    {
+      updateCheckboxGroupInput(session, "checkBoxCat",label = paste("Checkboxgroup label", length(tail(input$checkBoxCat,12))), choices = category, selected= head(input$checkBoxCat,12))
+    }
   })
 }
 
