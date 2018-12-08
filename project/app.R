@@ -147,12 +147,14 @@ server <- function(input, output, session) {
         value <- df[row, "Category"]
         
         if(count==0){
+          print(value)
           aux <- data.frame(matrix(ncol = 4, nrow = 0))
           c <- c("Category", "Installs", "Rating", "Size")
           colnames(aux) <- c
           count = count + 1
         }
-        else if(value==x[i]){
+        if(value==x[i]){
+          print(value)
           newRow <- data.frame(Category=value, Installs=df[row,"Installs"], Rating=df[row,"Rating"], Size=df[row, "Size"])
           aux <- rbind(aux, newRow)
         }
